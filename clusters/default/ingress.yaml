@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vaultwarden-ingress
+  namespace: vaultwarden
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns01
+    traefik.ingress.kubernetes.io/router.middlewares: |
+      kube-system-infra-rate-limit@kubernetescrd,
+      kube-system-infra-security-headers@kubernetescrd
+  labels:
+    app.kubernetes.io/name: vaultwarden
+    app.kubernetes.io/part-of: kudofools
+    app.kubernetes.io/managed-by: flux
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - vaultwarden.kudofools.dev
+      secretName: vaultwarden-kudofools-dev-tls
+  rules:
+    - host: vaultwarden.kudofools.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vaultwarden
+                port:
+                  number: 80
